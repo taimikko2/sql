@@ -1,0 +1,5 @@
+*.bak
+sql-trainer-tehtavat.sql
+sqlite.bat
+*/__pycache__/*
+.vscode/*
