@@ -103,16 +103,13 @@ def courses_by_teacher(teacher_name):
 # hakee opettajan antamien opintopisteiden määrän
 def credits_by_teacher(teacher_name):
     #print("credits_by_teacher(", teacher_name, ")")
-    op = db.execute("SELECT IFNULL(COUNT(DISTINCT c.id)*k.credits, 0) FROM Teachers t\
+    op = db.execute("SELECT IFNULL(SUM(k.credits), 0) FROM Teachers t\
         LEFT JOIN CourseTeachers ct ON ct.teacher_id = t.id \
         LEFT JOIN Credits c ON ct.course_id = c.course_id\
         LEFT JOIN Courses k ON k.id = c.course_id\
         WHERE  t.name = ?\
-        GROUP BY t.name, k.id;", [teacher_name]).fetchall();
-    res = 0;
-    for p in op:
-        res += p[0]
-    return res
+        GROUP BY t.name;", [teacher_name]).fetchone();
+    return op[0]
 
 
 # hakee opiskelijan suorittamat kurssit arvosanoineen (aakkosjärjestyksessä)
@@ -128,14 +125,9 @@ def courses_by_student(student_name):
 # hakee tiettynä vuonna saatujen opintopisteiden määrän
 def credits_by_year(year):
     # print("credits_by_year(",year,")");
-    op = db.execute("SELECT COUNT(*)*k.credits\
-        FROM Courses k, Credits c\
-        WHERE c.course_id = k.id AND strftime('%Y', c.date) = ? \
-        GROUP BY k.id", [str(year)]).fetchall()
-    res = 0;
-    for p in op:
-        res += p[0]
-    return res
+    op = db.execute("SELECT SUM(k.credits) FROM Courses k, Credits c \
+        WHERE c.course_id = k.id AND strftime('%Y', c.date) = ?", [str(year)]).fetchone()
+    return op[0]
 
 
 # hakee kurssin arvosanojen jakauman (järjestyksessä arvosanat 1-5)
@@ -208,20 +200,14 @@ def group_people(group_name):
 # hakee ryhmissä saatujen opintopisteiden määrät (aakkosjärjestyksessä)
 def credits_in_groups():
     #print("credits_in_groups()")
-    groups = db.execute("SELECT g.name, IFNULL(COUNT(DISTINCT cr.id)*c.credits, 0)\
+    groups = db.execute("SELECT g.name, IFNULL(SUM(c.credits), 0)\
         FROM Groups g\
         LEFT JOIN GroupStudents gs ON g.id = gs.group_id \
         LEFT JOIN Credits cr ON gs.student_id = cr.student_id\
         LEFT JOIN Courses c ON c.id = cr.course_id\
-        GROUP BY g.name, cr.id ORDER BY g.name;").fetchall()
-    print("KREDIITTIÄ")
+        GROUP BY g.name ORDER BY g.name;").fetchall()
     return groups
-    '''
-    res = 0;
-    for p in op:
-        res += p[0]
-    return res
-    '''
+
 
 
 # hakee ryhmät, joissa on tietty opettaja ja opiskelija (aakkosjärjestyksessä)
