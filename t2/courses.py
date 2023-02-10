@@ -208,8 +208,6 @@ def credits_in_groups():
         GROUP BY g.name ORDER BY g.name;").fetchall()
     return groups
 
-
-
 # hakee ryhmät, joissa on tietty opettaja ja opiskelija (aakkosjärjestyksessä)
 def common_groups(teacher_name, student_name):
     #print("common_groups(",teacher_name,",",student_name,")")
