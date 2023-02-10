@@ -1,3 +1,4 @@
+# testiparametrit 
 '''
 import courses
 
@@ -52,7 +53,9 @@ print(courses.teacher_list())
 print(courses.group_people("Basic-koodarit"))
 print(courses.credits_in_groups())
 print(courses.common_groups("Antti Laaksonen", "Otto Nurmi"))
+
 '''
+# arvosteluparametrit
 
 import courses
 
@@ -107,3 +110,4 @@ print(courses.teacher_list())
 print(courses.group_people("Basic-koodarit"))
 print(courses.credits_in_groups())
 print(courses.common_groups("Antti Laaksonen", "Otto Nurmi"))
+# '''

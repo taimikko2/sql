@@ -20,15 +20,15 @@ def create_tables():
         credits INTEGER )")
     db.execute("CREATE TABLE CourseTeachers (\
         id INTEGER PRIMARY KEY, \
-        teacher_id REFERENCES Teachers , \
-        course_id REFERENCES Courses)")
+        teacher_id INTEGER REFERENCES Teachers , \
+        course_id INTEGER REFERENCES Courses)")
     db.execute("CREATE TABLE Students (\
         id INTEGER PRIMARY KEY, \
         name TEXT)")
     db.execute("CREATE TABLE Credits (\
         id INTEGER PRIMARY KEY,\
-        student_id REFERENCES Students,\
-        course_id REFERENCES Courses,\
+        student_id INTEGER REFERENCES Students,\
+        course_id INTEGER REFERENCES Courses,\
         date DATE,\
         grade INTEGER)")
     db.execute("CREATE TABLE Groups (\
@@ -36,12 +36,12 @@ def create_tables():
         name TEXT)")
     db.execute("CREATE TABLE GroupStudents (\
         id INTEGER PRIMARY KEY, \
-        student_id REFERENCES Students , \
+        student_id INTEGER REFERENCES Students , \
         group_id REFERENCES Groups)")
     db.execute("CREATE TABLE GroupTeachers (\
         id INTEGER PRIMARY KEY, \
-        teacher_id REFERENCES Teachers , \
-        group_id REFERENCES Groups)")
+        teacher_id INTEGER REFERENCES Teachers , \
+        group_id INTEGER REFERENCES Groups)")
 
 
 # lisää opettajan tietokantaan
@@ -103,12 +103,16 @@ def courses_by_teacher(teacher_name):
 # hakee opettajan antamien opintopisteiden määrän
 def credits_by_teacher(teacher_name):
     #print("credits_by_teacher(", teacher_name, ")")
-    op = db.execute("SELECT COUNT(DISTINCT c.id)*k.credits FROM Teachers t\
+    op = db.execute("SELECT IFNULL(COUNT(DISTINCT c.id)*k.credits, 0) FROM Teachers t\
         LEFT JOIN CourseTeachers ct ON ct.teacher_id = t.id \
         LEFT JOIN Credits c ON ct.course_id = c.course_id\
         LEFT JOIN Courses k ON k.id = c.course_id\
-        WHERE  t.name = ? ;", [teacher_name]).fetchone()[0]
-    return op
+        WHERE  t.name = ?\
+        GROUP BY t.name, k.id;", [teacher_name]).fetchall();
+    res = 0;
+    for p in op:
+        res += p[0]
+    return res
 
 
 # hakee opiskelijan suorittamat kurssit arvosanoineen (aakkosjärjestyksessä)
@@ -124,9 +128,14 @@ def courses_by_student(student_name):
 # hakee tiettynä vuonna saatujen opintopisteiden määrän
 def credits_by_year(year):
     # print("credits_by_year(",year,")");
-    return db.execute("SELECT COUNT(c.id)*k.credits\
+    op = db.execute("SELECT COUNT(*)*k.credits\
         FROM Courses k, Credits c\
-        WHERE c.course_id = k.id AND strftime('%Y', c.date) = ? ", [str(year)]).fetchone()[0]
+        WHERE c.course_id = k.id AND strftime('%Y', c.date) = ? \
+        GROUP BY k.id", [str(year)]).fetchall()
+    res = 0;
+    for p in op:
+        res += p[0]
+    return res
 
 
 # hakee kurssin arvosanojen jakauman (järjestyksessä arvosanat 1-5)
@@ -204,8 +213,15 @@ def credits_in_groups():
         LEFT JOIN GroupStudents gs ON g.id = gs.group_id \
         LEFT JOIN Credits cr ON gs.student_id = cr.student_id\
         LEFT JOIN Courses c ON c.id = cr.course_id\
-        GROUP BY g.name ORDER BY g.name;").fetchall()
+        GROUP BY g.name, cr.id ORDER BY g.name;").fetchall()
+    print("KREDIITTIÄ")
     return groups
+    '''
+    res = 0;
+    for p in op:
+        res += p[0]
+    return res
+    '''
 
 
 # hakee ryhmät, joissa on tietty opettaja ja opiskelija (aakkosjärjestyksessä)
